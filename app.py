@@ -1,13 +1,8 @@
 import pandas as pd
 import streamlit as st
 
-# GitHub raw URL for the file
-file_url = 'https://raw.githubusercontent.com/tylerfroh/NBA-Picks/main/NBA%20Picks.xlsx'
-
-# Download the file
-response = requests.get(file_url)
-file_content = BytesIO(response.content)
-
+file_path = "./NBA Picks.xlsx"
+worksheet_name = "All_Data"
 
 # Load the Excel file
 @st.cache_data
