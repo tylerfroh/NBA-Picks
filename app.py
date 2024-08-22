@@ -1,9 +1,13 @@
 import pandas as pd
 import streamlit as st
 
-# File path and worksheet name
-file_path = r'C:\Users\frohlict\OneDrive - FCC-FAC\repo\scrap\NBA Picks.xlsx'
-worksheet_name = "All_Data"
+# GitHub raw URL for the file
+file_url = 'https://raw.githubusercontent.com/tylerfroh/NBA-Picks/main/NBA%20Picks.xlsx'
+
+# Download the file
+response = requests.get(file_url)
+file_content = BytesIO(response.content)
+
 
 # Load the Excel file
 @st.cache_data
