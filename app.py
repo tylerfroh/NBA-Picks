@@ -7,7 +7,7 @@ worksheet_name = "All_Data"
 # Load the Excel file
 @st.cache_data
 def load_data():
-     return pd.read_excel(file_path, sheet_name=worksheet_name, engine='xlrd')
+     return pd.read_excel(file_path, sheet_name=worksheet_name, engine='openpyxl')
 
 # Load data
 data = load_data()
