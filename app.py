@@ -31,10 +31,15 @@ if page == "Main":
     else:
         filtered_data = data[data['Year'] == selected_year]
 
+    # Group by User and sum only the numeric columns (e.g., 'Result')
+    user_picks = filtered_data.groupby('User').sum(numeric_only=True)
+
     # Calculate Result % for each user
-    user_picks = filtered_data.groupby('User').sum()
-    total_results = len(filtered_data)
-    user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
+    total_results = filtered_data['Result'].sum()
+    if total_results > 0:  # Avoid division by zero
+        user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
+    else:
+        user_picks['Result %'] = 0
     user_picks_summary = user_picks[['Result %']].reset_index()
 
     # Display the result in Streamlit
