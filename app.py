@@ -99,7 +99,7 @@ elif page == "Awards":
         "MVP": "Most Valuable Player (MVP)",
         "ROY": "Rookie of the Year (ROY)",
         "DPOY": "Defensive Player of the Year (DPOY)",
-        "6man": "6th Man of the Year",
+        "6th": "6th Man of the Year",
         "NBA Champion": "NBA Champion",
         "Coach of Year": "Coach of the Year",
         "MIP": "Most Improved Player (MIP)"
