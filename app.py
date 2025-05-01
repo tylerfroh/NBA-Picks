@@ -1,13 +1,15 @@
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
-file_path = "./NBA Picks.xlsx"
+# File path and worksheet name
+file_path = r"C:\Users\frohlict\OneDrive - FCC-FAC\Scrap\sports\NBA Picks.xlsx"
 worksheet_name = "All_Data"
 
 # Load the Excel file
 @st.cache_data
 def load_data():
-     return pd.read_excel(file_path, sheet_name=worksheet_name, engine='openpyxl')
+    return pd.read_excel(file_path, sheet_name=worksheet_name)
 
 # Load data
 data = load_data()
@@ -31,15 +33,10 @@ if page == "Main":
     else:
         filtered_data = data[data['Year'] == selected_year]
 
-    # Group by User and sum only the numeric columns (e.g., 'Result')
-    user_picks = filtered_data.groupby('User').sum(numeric_only=True)
-
     # Calculate Result % for each user
-    total_results = filtered_data['Result'].sum()
-    if total_results > 0:  # Avoid division by zero
-        user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
-    else:
-        user_picks['Result %'] = 0
+    user_picks = filtered_data.groupby('User').sum()
+    total_results = len(filtered_data)
+    user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
     user_picks_summary = user_picks[['Result %']].reset_index()
 
     # Display the result in Streamlit
@@ -50,8 +47,24 @@ if page == "Main":
         result_percentage_by_year = data.groupby(['Year', 'User'])['Result'].sum().unstack().fillna(0)
         result_percentage_by_year = result_percentage_by_year.div(data.groupby('Year')['Result'].count(), axis=0) * 100
         
-        # Plot the chart with lines for each user
-        st.line_chart(result_percentage_by_year.sort_index())
+        # Reset index to use as columns in plotly
+        plot_df = result_percentage_by_year.sort_index().reset_index()
+
+        # Melt the dataframe for long format (Year, User, Result %)
+        plot_df_melted = plot_df.melt(id_vars='Year', var_name='User', value_name='Result %')
+
+        # Create custom color map: set 'Tyler' as blue, others as red
+        color_map = {user: 'blue' if user == 'Tyler' else 'red' for user in plot_df_melted['User'].unique()}
+
+        fig = px.line(
+            plot_df_melted,
+            x='Year',
+            y='Result %',
+            color='User',
+            color_discrete_map=color_map
+        )
+
+        st.plotly_chart(fig)
 
 elif page == "Questions":
     # Page for displaying the dataframe and filtering
