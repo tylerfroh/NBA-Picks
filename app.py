@@ -16,45 +16,35 @@ data = load_data()
 
 # Create the navigation menu
 st.sidebar.title('Navigation')
-page = st.sidebar.radio("Go to", ["Main", "Questions", "Submit Answers"])
+page = st.sidebar.radio("Go to", ["Main", "Questions", "Submit Answers", "Awards"])
 
 if page == "Main":
-    # Page for displaying chart and summary
     st.title("NBA Picks 🏀")
 
-    # Dropdown to select year
     years = list(data['Year'].unique())
     years.append('All')
     selected_year = st.selectbox("Select Year", options=sorted(years))
 
-    # Filter data based on the selected year
     if selected_year == 'All':
         filtered_data = data
     else:
         filtered_data = data[data['Year'] == selected_year]
 
     # Calculate Result % for each user
-    user_picks = filtered_data.groupby('User')[['Result']].sum()
+    user_picks = filtered_data.groupby('User').sum(numeric_only=True)
     total_results = len(filtered_data)
     user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
-
     user_picks_summary = user_picks[['Result %']].reset_index()
 
-    # Display the result in Streamlit
     st.dataframe(user_picks_summary)
 
-    # Calculate Result % for each user by year for chart
+    # Line chart for Result % by year
     if selected_year != 'All':
         result_percentage_by_year = data.groupby(['Year', 'User'])['Result'].sum().unstack().fillna(0)
         result_percentage_by_year = result_percentage_by_year.div(data.groupby('Year')['Result'].count(), axis=0) * 100
-        
-        # Reset index to use as columns in plotly
         plot_df = result_percentage_by_year.sort_index().reset_index()
-
-        # Melt the dataframe for long format (Year, User, Result %)
         plot_df_melted = plot_df.melt(id_vars='Year', var_name='User', value_name='Result %')
 
-        # Create custom color map: set 'Tyler' as blue, others as red
         color_map = {user: 'blue' if user == 'Tyler' else 'red' for user in plot_df_melted['User'].unique()}
 
         fig = px.line(
@@ -68,28 +58,22 @@ if page == "Main":
         st.plotly_chart(fig)
 
 elif page == "Questions":
-    # Page for displaying the dataframe and filtering
     st.title("Data Overview")
 
-    # Dropdown to select year
     years = list(data['Year'].unique())
     selected_year = st.selectbox("Select Year to Filter", options=sorted(years))
 
-    # Filter data based on the selected year
     if selected_year:
         filtered_data = data[data['Year'] == selected_year]
     else:
         filtered_data = data
 
-    # Display the dataframe
     st.dataframe(filtered_data)
 
 elif page == "Submit Answers":
-    # Page for submitting answers
     st.title("Submit Answers")
 
     with st.form(key='submit_answers_form'):
-        # Form inputs for 8 questions
         answers = []
         for i in range(1, 9):
             st.write(f"Question {i}")
@@ -98,14 +82,43 @@ elif page == "Submit Answers":
             guess = st.text_input(f"Guess {i}")
             answers.append({'User': user, 'Question': question, 'Guess': guess})
 
-        # Submit button
         submit_button = st.form_submit_button(label='Submit')
 
         if submit_button:
-            # Handle form submission
             for i, answer in enumerate(answers, 1):
                 st.write(f"**Answer {i}:**")
                 st.write(f"User: {answer['User']}")
                 st.write(f"Question: {answer['Question']}")
                 st.write(f"Guess: {answer['Guess']}")
-            # Here you can add code to save the data to a file or database if needed
+            # Optional: Save to file or database
+
+elif page == "Awards":
+    st.title("🏆 Awards Results")
+
+    awards = {
+        "MVP": "Most Valuable Player (MVP)",
+        "ROY": "Rookie of the Year (ROY)",
+        "DPOY": "Defensive Player of the Year (DPOY)",
+        "6man": "6th Man of the Year",
+        "NBA Champion": "NBA Champion",
+        "Coach of Year": "Coach of the Year",
+        "MIP": "Most Improved Player (MIP)"
+    }
+
+    for keyword, display_name in awards.items():
+        st.subheader(f"🏅 {display_name}")
+
+        award_data = data[data['Question'].str.contains(keyword, case=False, na=False)]
+
+        if not award_data.empty:
+            summary = (
+                award_data.groupby('User')['Result']
+                .agg(['sum', 'count'])
+                .reset_index()
+            )
+            summary['Result %'] = (summary['sum'] / summary['count']) * 100
+            summary = summary.rename(columns={'sum': 'Correct', 'count': 'Total'})
+
+            st.dataframe(summary[['User', 'Correct', 'Total', 'Result %']])
+        else:
+            st.write("No data available for this award.")
