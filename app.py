@@ -3,7 +3,7 @@ import streamlit as st
 import plotly.express as px
 
 # File path and worksheet name
-file_path = r"C:\Users\frohlict\OneDrive - FCC-FAC\Scrap\sports\NBA Picks.xlsx"
+file_path = r"./NBA Picks.xlsx"
 worksheet_name = "All_Data"
 
 # Load the Excel file
