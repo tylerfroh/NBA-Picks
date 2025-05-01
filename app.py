@@ -34,9 +34,10 @@ if page == "Main":
         filtered_data = data[data['Year'] == selected_year]
 
     # Calculate Result % for each user
-    user_picks = filtered_data.groupby('User').sum()
+    user_picks = filtered_data.groupby('User')[['Result']].sum()
     total_results = len(filtered_data)
     user_picks['Result %'] = (user_picks['Result'] / total_results) * 100
+
     user_picks_summary = user_picks[['Result %']].reset_index()
 
     # Display the result in Streamlit
